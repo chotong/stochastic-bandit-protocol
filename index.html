@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol: Stochastic Bandit Algorithms</title>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- MathJax Configuration -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            chtml: {
+                scale: 1.0, 
+                fontURL: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2'
+            },
+            options: {
+                renderActions: {
+                    addMenu: [0, '', '']
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        /* LaTeX-like Style Sheet */
+        :root {
+            --font-main: "Times New Roman", Times, serif;
+            --text-color: #111;
+            --bg-color: #fdfdfd;
+            --paper-width: 800px;
+            --link-color: #0000EE;
+        }
+
+        body {
+            background-color: #eee; 
+            color: var(--text-color);
+            font-family: var(--font-main);
+            line-height: 2.2; 
+            margin: 0;
+            padding: 40px 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* The "Paper" itself */
+        .paper {
+            background: white;
+            max-width: var(--paper-width);
+            margin: 0 auto;
+            padding: 70px 90px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            border: 1px solid #ddd;
+        }
+
+        /* Typography Hierarchy */
+        h1 {
+            font-family: var(--font-main);
+            font-size: 18pt; /* Standard academic size */
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0.5em;
+            margin-top: 0;
+            line-height: 1.3;
+        }
+
+        .header-info {
+            text-align: center;
+            margin-bottom: 3.5rem;
+            font-size: 12pt;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 1.5rem;
+        }
+        
+        /* Single line Author & Course */
+        .header-info span {
+            display: inline-block;
+            margin: 0 15px;
+        }
+
+        h2 {
+            font-family: var(--font-main);
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 2.5em;
+            margin-bottom: 1em;
+            text-transform: uppercase;
+        }
+
+        h3 {
+            font-family: var(--font-main);
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 1.8em;
+            margin-bottom: 0.8em;
+            font-style: italic;
+        }
+
+        p {
+            margin-bottom: 1.5em;
+            text-align: justify;
+            font-size: 12pt;
+            font-weight: normal; 
+        }
+
+        /* Code Blocks - Styled like academic listings */
+        .code-wrapper {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 2em 0;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 10pt;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre; /* Preserves formatting */
+            border-radius: 2px;
+        }
+        
+        .code-caption {
+            font-size: 10pt;
+            font-style: italic;
+            text-align: center;
+            margin-top: 5px;
+            color: #555;
+        }
+
+        /* Math Display */
+        .math-display {
+            margin: 2em 0;
+            text-align: center;
+            font-family: var(--font-main);
+        }
+
+        /* Figures */
+        .figure-container {
+            margin: 3em 0;
+            border: 1px solid #eee;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .figure-caption {
+            text-align: center;
+            font-size: 11pt;
+            margin-top: 15px;
+            font-style: italic;
+            color: #444;
+        }
+        
+        .figure-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 12pt;
+        }
+
+        /* Interactive Button */
+        .btn-run {
+            display: block;
+            margin: 0 auto 25px auto;
+            background-color: #fff;
+            border: 1px solid #444;
+            color: #333;
+            padding: 8px 24px;
+            font-family: var(--font-main);
+            font-size: 11pt;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-run:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-bottom: 1.5em;
+            padding-left: 2em;
+        }
+        li {
+            margin-bottom: 0.8em;
+            font-size: 12pt;
+        }
+
+        /* References */
+        .references {
+            list-style: none;
+            padding: 0;
+        }
+        .references li {
+            padding-left: 2em;
+            text-indent: -2em;
+            margin-bottom: 1em;
+        }
+
+        /* Responsive */
+        @media (max-width: 820px) {
+            .paper { 
+                padding: 40px; 
+                width: 90%;
+            }
+            .header-info span {
+                display: block;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="paper">
+
+    <!-- Header -->
+    <header>
+        <h1>Implementation and Evaluation of Stochastic Bandit Algorithms</h1>
+        <div class="header-info">
+            <span>Author: Zhaotong Jia</span>
+            <span>Course: EXPO E-42C</span>
+        </div>
+    </header>
+
+    <!-- 1. ABSTRACT -->
+    <section>
+        <h2>1. Abstract</h2>
+        <p>
+            Reinforcement learning (RL) is the process by which organisms learn to predict and acquire rewards through trial and error. Within psychology and computational neuroscience, the Multi-Armed Bandit (MAB) problem serves as a quintessential experimental framework to isolate the specific computations underlying these decisions, specifically the trade-off between <strong>exploration</strong> (gathering new information) and <strong>exploitation</strong> (leveraging existing knowledge). While classical bandit tasks have successfully elucidated how dopaminergic systems track reward prediction errors, recent research suggests that standard algorithms may struggle in real-world scenarios characterized by sparse data and complex state spaces, necessitating the integration of episodic memory mechanisms [2]. This protocol outlines a rigorous methodology for simulating and evaluating two advanced algorithmic strategies: the Upper Confidence Bound (UCB) algorithm and Thompson Sampling. Unlike naive heuristic methods that rely on random exploration, these algorithms employ sophisticated mathematical principles to minimize the cost of learning. By following this protocol, researchers can replicate the standard experimental setup, implement these algorithms from scratch, and visually verify their logarithmic regret bounds, demonstrating their superior efficiency over traditional randomized baselines.
+        </p>
+    </section>
+
+    <!-- 2. INTRODUCTION -->
+    <section>
+        <h2>2. Introduction and Background</h2>
+        
+        <h3>2.1 The Core Dilemma</h3>
+        <p>
+            Imagine a gambler standing before a row of slot machines, colloquially known as "one-armed bandits." Each machine is governed by a hidden probability distribution, offering a different, unknown rate of payout. The gambler’s objective is straightforward yet computationally complex: to maximize total winnings over a fixed series of pulls. This scenario creates an inherent conflict. Should the gambler continue to pull the machine that has yielded the highest rewards so far, thereby exploiting their current knowledge? Or should they risk pulling a machine they have tested only sparsely, driven by the possibility that it might be superior to the current favorite?
+        </p>
+
+        <h3>2.2 Why This Matters</h3>
+        <p>
+            While the gambling analogy provides an intuitive entry point, the implications of the Bandit Problem extend far beyond casinos. In computational neuroscience, these tasks are instrumental in mapping the brain's decision-making architecture. Research has demonstrated that the firing of dopamine neurons in the midbrain quantitatively mirrors the "reward prediction error" signals central to bandit algorithms [2]. Furthermore, these paradigms allow researchers to dissociate distinct learning systems, differentiating between incremental "model-free" systems (often associated with the striatum) and memory-dependent "episodic" mechanisms (associated with the hippocampus) that may guide choices when statistical data is sparse [2]. Practically, these algorithms are vital in <strong>Clinical Trials</strong>, where doctors must balance testing experimental drugs against administering the best known treatment to patients. Similarly, in <strong>Digital Optimization</strong>, tech companies use these algorithms for A/B testing to determine optimal user interfaces. This protocol provides the technical framework to simulate this environment and compare the efficacy of different decision-making philosophies.
+        </p>
+    </section>
+
+    <!-- 3. MATERIALS -->
+    <section>
+        <h2>3. Materials and Prerequisites</h2>
+        <p>
+            To successfully replicate the simulations described in this protocol, specific computational tools and theoretical frameworks are required.
+        </p>
+
+        <h3>3.1 Computational Environment</h3>
+        <p>
+            The simulation logic requires Python (Version 3.8+) due to its extensive support for scientific computing. NumPy is essential for vectorizing the simulation, allowing for the efficient generation of random numbers and matrix operations required by the algorithms. Finally, Matplotlib is typically used to generate the Regret Curves, which are the primary visual evidence of an algorithm's performance.
+        </p>
+
+        <h3>3.2 Theoretical Definitions</h3>
+        <p>
+            Before implementation, one must define the variables that govern the bandit environment. The central metric for success is not merely the total reward, but a comparative metric known as Regret. The Horizon ($T$) defines the total number of opportunities or "time steps" the agent has to make a decision (e.g., $T=10,000$).
+        </p>
+        <p>
+            We assume there is an Optimal Mean ($\mu_*$), which represents the expected reward of the best possible arm. In a real-world scenario, this is unknown; in our simulation, it is a known ground truth used for evaluation. The Cumulative Regret ($\mathcal{R}_T$) quantifies the "cost of learning." It is defined as the difference between the reward the agent could have obtained by always picking the optimal arm and the reward it actually obtained. Mathematically, for an algorithm $\mathcal{A}$:
+        </p>
+        <div class="math-display">
+            $$ \mathcal{R}_T = T\mu_* - \mathbb{E}\left[\sum_{t=1}^{T} R_t\right] $$
+        </div>
+        <p>
+            A "good" algorithm is one where the regret grows slowly (logarithmically) rather than quickly (linearly).
+        </p>
+    </section>
+
+    <!-- 4. METHODOLOGY -->
+    <section>
+        <h2>4. Methodology</h2>
+        <p>
+            This section details the procedural steps for creating the digital environment and implementing three distinct classes of algorithms. The progression moves from the simplest, naive baseline to advanced probabilistic methods.
+        </p>
+
+        <h3>Phase 1: Environment Initialization</h3>
+        <p>
+            To scientifically grade the algorithms, it is essential to first construct a controlled digital environment where the "truth," specifically the actual win rates of the slot machines, is known to the experimenter but remains hidden from the algorithm. This allows for precise calculation of regret. We begin by instantiating a list of true win rates for $K=5$ distinct arms. For experimental clarity, ensure there is a single optimal arm (e.g., <code>true_means = [0.1, 0.5, 0.8, 0.2, 0.3]</code>). We then initialize data structures to serve as the agent's memory: counters for how many times each arm has been pulled ($N_a(t)$) and trackers for the empirical average reward observed ($ \hat{\mu}_a(t) $).
+        </p>
+        <div class="code-wrapper">
+class Bandit():
+    def __init__(self, means):
+        self.means = means
+        self.K = len(means)
+        
+    def pull(self, arm_index):
+        # Returns 1 (success) or 0 (failure)
+        if np.random.random() < self.means[arm_index]:
+            return 1
+        else:
+            return 0
+        </div>
+        <div class="code-caption">Listing 1: Python class structure for the Bandit Environment</div>
+
+        <h3>Phase 2: The Baseline (Epsilon-Greedy Strategy)</h3>
+        <p>
+            We establish a baseline for performance by implementing the heuristic Epsilon-Greedy strategy. This method relies on a simple coin toss to force exploration. The parameter $\epsilon$ (epsilon) is set to a small value, typically 0.1. During the decision loop, the algorithm generates a random number. If this number is less than $\epsilon$, it disregards current knowledge and selects an arm uniformly at random (Exploration). Otherwise, it selects the arm with the highest current average (Exploitation). While conceptually simple, this method suffers from a fatal flaw: it is undirected. The algorithm explores purely by chance, without considering which arms are worth exploring. This leads to linear regret accumulation even after the best arm has been found.
+        </p>
+        <div class="code-wrapper">
+def epsilon_greedy(env, epsilon, T):
+    counts = np.zeros(env.K)
+    values = np.zeros(env.K)
+    regret = []
+    
+    for t in range(T):
+        if np.random.random() < epsilon:
+            arm = np.random.randint(env.K) # Explore
+        else:
+            arm = np.argmax(values) # Exploit
+            
+        reward = env.pull(arm)
+        counts[arm] += 1
+        # Incremental mean update
+        values[arm] += (reward - values[arm]) / counts[arm]
+        
+    return regret
+        </div>
+        <div class="code-caption">Listing 2: Python implementation of the Epsilon-Greedy algorithm</div>
+
+        <h3>Phase 3: The Optimism Principle (UCB Algorithm)</h3>
+        <p>
+            To address the inefficiencies of random exploration, we implement the Upper Confidence Bound (UCB) algorithm. This operates on the principle of "Optimism in the Face of Uncertainty." Instead of looking only at the average reward, the algorithm calculates a "plausible upper bound" for every arm. This value represents the best the arm <em>could</em> theoretically be, given the limited data available. The formula is:
+        </p>
+        <div class="math-display">
+            $$ UCB_a(t) = \hat{\mu}_a(t) + \sqrt{\frac{2 \ln t}{N_a(t)}} $$
+        </div>
+        <p>
+            The first term represents <strong>Exploitation</strong> (how good the arm has been so far), while the second term represents <strong>Exploration</strong> (the uncertainty bonus). Notice the denominator $N_a(t)$ in the bonus term. If an arm has rarely been pulled, $N_a$ is small, making the bonus term massive. The algorithm will select this arm simply to "check" if its high potential is real. Once checked, $N_a$ increases, the bonus shrinks, and the algorithm naturally stops selecting it if the average reward remains low. This self-correcting behavior is the key to its efficiency.
+        </p>
+        <div class="code-wrapper">
+def ucb(env, T):
+    counts = np.zeros(env.K)
+    values = np.zeros(env.K)
+    
+    # Initialization: Pull each arm once to avoid division by zero
+    for a in range(env.K):
+        # ... (omitted for brevity)
+    
+    for t in range(env.K, T):
+        # Calculate UCB index for all arms
+        ucb_values = values + np.sqrt(2 * np.log(t) / counts)
+        arm = np.argmax(ucb_values)
+        
+        reward = env.pull(arm)
+        counts[arm] += 1
+        values[arm] += (reward - values[arm]) / counts[arm]
+        </div>
+        <div class="code-caption">Listing 3: Python implementation of the UCB algorithm</div>
+
+        <h3>Phase 4: Bayesian Learning (Thompson Sampling)</h3>
+        <p>
+            Adopting a Bayesian perspective, we implement Thompson Sampling. This models the agent's belief about each arm as a probability distribution, rather than a single number. We assign a Beta distribution, $Beta(\alpha, \beta)$, to each arm, initially setting $\alpha=1, \beta=1$ to represent a state of total ignorance (a uniform prior).
+        </p>
+        <p>
+            In every round, the algorithm draws a random sample from the distribution of each arm. This sample represents a "simulation" or "hallucination" of the arm's true power according to the agent's current belief. The algorithm then selects the arm that produced the highest sample. After observing the actual reward, the hyperparameters are updated using Bayes' rule: a success increments $\alpha$ (shifting the belief curve to the right), while a failure increments $\beta$. As data accumulates, the distributions become narrower and more peaked. This naturally guides the algorithm toward the optimal arm without explicit math for "bounds."
+        </p>
+        <div class="code-wrapper">
+def thompson_sampling(env, T):
+    # Beta parameters: alpha (successes), beta (failures)
+    alphas = np.ones(env.K)
+    betas = np.ones(env.K)
+    
+    for t in range(T):
+        # Sample from posterior
+        samples = [np.random.beta(alphas[i], betas[i]) for i in range(env.K)]
+        arm = np.argmax(samples)
+        
+        reward = env.pull(arm)
+        
+        # Bayesian Update
+        if reward == 1:
+            alphas[arm] += 1
+        else:
+            betas[arm] += 1
+        </div>
+        <div class="code-caption">Listing 4: Python implementation of Thompson Sampling</div>
+    </section>
+
+    <!-- 5. RESULTS -->
+    <section>
+        <h2>5. Expected Results and Interpretation</h2>
+        <p>
+            When the simulation is executed over $T=1,000$ rounds, the distinction between the naive and sophisticated approaches becomes visually undeniable. We present two key visualizations below, generated via a Monte Carlo simulation (averaging 50 independent runs to ensure statistical significance) to minimize variance and show true algorithmic behavior.
+        </p>
+
+        <!-- Control Button -->
+        <button onclick="runSimulation()" class="btn-run">⟳ Re-run All Simulations</button>
+
+        <!-- FIGURE 1: CUMULATIVE REGRET (Epsilon vs UCB) -->
+        <div class="figure-container">
+            <div class="figure-title">Figure 1: Cumulative Regret (Epsilon-Greedy vs. UCB)</div>
+            <div style="position: relative; height: 350px;">
+                <canvas id="regretChartUCB"></canvas>
+            </div>
+            <div class="figure-caption">
+                Comparison of the cost of learning. The red line (Epsilon-Greedy) grows linearly, indicating constant mistakes. The blue line (UCB) flattens out, indicating the algorithm has successfully "learned" the optimal arm and stopped unnecessary exploration.
+            </div>
+        </div>
+
+        <h3>5.1 Analysis of Optimistic Exploration</h3>
+        <p>
+            The curve for the Epsilon-Greedy strategy appears as a straight, upward-sloping line (Linear Regret). This linearity indicates a constant accumulation of error. Because the algorithm is hard-coded to behave randomly 10% of the time, it never "converges." It is forever doomed to verify things it already knows, wasting resources on suboptimal arms indefinitely. In sharp contrast, the UCB algorithm produces a curve that resembles a logarithmic function. It rises steeply at first, but then flattens out horizontally. This plateau is the hallmark of a successful learning algorithm. It signifies that the agent has effectively "solved" the environment.
+        </p>
+
+        <!-- FIGURE 2: CUMULATIVE REGRET (Epsilon vs Thompson Sampling) -->
+        <div class="figure-container">
+            <div class="figure-title">Figure 2: Cumulative Regret (Epsilon-Greedy vs. Thompson Sampling)</div>
+            <div style="position: relative; height: 350px;">
+                <canvas id="regretChartTS"></canvas>
+            </div>
+            <div class="figure-caption">
+                Comparison showing the efficiency of Bayesian methods. Similar to UCB, Thompson Sampling (Green) achieves logarithmic regret, vastly outperforming the linear regret of the Epsilon-Greedy baseline (Red).
+            </div>
+        </div>
+
+        <h3>5.2 Analysis of Bayesian Learning</h3>
+        <p>
+            Figure 2 illustrates the performance of Thompson Sampling against the baseline. Like UCB, Thompson Sampling achieves logarithmic regret, represented by the curve flattening over time. By modeling uncertainty with probability distributions, Thompson Sampling naturally explores arms about which it is uncertain, and exploits arms it believes are optimal. This probabilistic matching often yields performance that is competitive with, or even superior to, deterministic confidence bounds in many settings.
+        </p>
+    </section>
+
+    <!-- 6. DISCUSSION -->
+    <section>
+        <h2>6. Discussion and Troubleshooting</h2>
+        
+        <h3>6.1 The "Cold Start" Problem</h3>
+        <p>
+            A common issue during implementation is the "Cold Start," or how to handle the very first round when $N_a = 0$. For UCB, division by zero occurs if $N_a=0$. The solution requires that the protocol mandate the algorithm must pull every single arm once before the UCB logic begins. This initialization phase ensures all denominators are non-zero.
+        </p>
+
+        <h3>6.2 The Validity of Assumptions</h3>
+        <p>
+            It is crucial to note that the mathematical guarantees of UCB (the logarithmic regret) rely on the rewards being bounded (e.g., between 0 and 1) or sub-Gaussian. If the environment produces "heavy-tailed" rewards (where extreme outliers are common), the standard UCB formula may be too optimistic, failing to explore enough. In such cases, the "Uncertainty Bonus" term in the formula must be adjusted to account for higher variance.
+        </p>
+    </section>
+
+    <!-- 7. CONCLUSION -->
+    <section>
+        <h2>7. Conclusion</h2>
+        <p>
+            This protocol demonstrates that while simple heuristics like Epsilon-Greedy are intuitively easy to implement, they are computationally wasteful. By leveraging uncertainty (UCB) or probabilistic beliefs (Thompson Sampling), researchers can achieve <strong>logarithmic regret</strong>, minimizing the cost of exploration. These insights are foundational for designing modern AI systems that learn efficiently from their environment, ensuring that resources—whether they be computing cycles, financial assets, or medical treatments—are allocated with optimal precision.
+        </p>
+    </section>
+
+    <!-- 8. REFERENCES -->
+    <section>
+        <h2>8. References</h2>
+        <ol class="references">
+            <li>Lattimore, T., & Szepesvári, C. (2019). <em>Bandit Algorithms</em>. Cambridge University Press.</li>
+            <li>Gershman, S. J., & Daw, N. D. (2017). "Reinforcement learning and episodic memory in humans and animals: An integrative framework." <em>Annual Review of Psychology</em>, 68, 101-128.</li>
+        </ol>
+    </section>
+
+</div>
+
+<!-- Simulation Script -->
+<script>
+    // Configuration
+    const nRounds = 1000;
+    const nSimulations = 50; 
+    const trueMeans = [0.1, 0.5, 0.8, 0.2, 0.3]; 
+    const optimalArmIndex = 2; // 0.8 is index 2
+    const optimalMean = 0.8;
+    const ucbVariance = 0.5;
+
+    let chartRegretUCB = null;
+    let chartRegretTS = null;
+
+    // Helper: Standard Normal (Box-Muller)
+    function randn_bm() {
+        let u = 0, v = 0;
+        while(u === 0) u = Math.random(); 
+        while(v === 0) v = Math.random();
+        return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+    }
+
+    // Helper: Gamma Distribution (Marsaglia and Tsang)
+    function randomGamma(k) {
+        if (k < 1) return randomGamma(1 + k) * Math.pow(Math.random(), 1 / k);
+        const d = k - 1 / 3;
+        const c = 1 / Math.sqrt(9 * d);
+        let z, v, u;
+        while (true) {
+            do {
+                z = randn_bm();
+                v = 1 + c * z;
+            } while (v <= 0);
+            v = v * v * v;
+            u = Math.random();
+            if (u < 1 - 0.0331 * Math.pow(z, 4)) return d * v;
+            if (Math.log(u) < 0.5 * Math.pow(z, 2) + d * (1 - v + Math.log(v))) return d * v;
+        }
+    }
+
+    // Helper: Beta Distribution
+    function randomBeta(alpha, beta) {
+        const x = randomGamma(alpha);
+        const y = randomGamma(beta);
+        return x / (x + y);
+    }
+
+    function getReward(armIndex) {
+        return Math.random() < trueMeans[armIndex] ? 1 : 0;
+    }
+
+    // Algorithm 1: Epsilon Greedy
+    function runEpsilonGreedyOnce(epsilon) {
+        let counts = [0,0,0,0,0];
+        let values = [0.0,0.0,0.0,0.0,0.0]; 
+        let regrets = [];
+        let currentRegret = 0;
+
+        for (let t = 1; t <= nRounds; t++) {
+            let arm = 0;
+            let untried = [];
+            for(let i=0; i<5; i++) if(counts[i] === 0) untried.push(i);
+
+            if (untried.length > 0) {
+                arm = untried[Math.floor(Math.random() * untried.length)];
+            } else {
+                if (Math.random() < epsilon) {
+                    arm = Math.floor(Math.random() * 5);
+                } else {
+                    let maxQ = -1;
+                    let candidates = [];
+                    for(let i=0; i<5; i++) {
+                        let Q = values[i] / counts[i];
+                        if(Q > maxQ) { maxQ = Q; candidates = [i]; }
+                        else if (Q === maxQ) { candidates.push(i); }
+                    }
+                    arm = candidates[Math.floor(Math.random()*candidates.length)];
+                }
+            }
+
+            let reward = getReward(arm);
+            counts[arm]++;
+            values[arm] += reward;
+            currentRegret += (optimalMean - trueMeans[arm]);
+            regrets.push(currentRegret);
+        }
+        return regrets;
+    }
+
+    // Algorithm 2: UCB
+    function runUCBOnce() {
+        let counts = [0,0,0,0,0];
+        let rewardsSum = [0.0,0.0,0.0,0.0,0.0];
+        let regrets = [];
+        let currentRegret = 0;
+
+        for (let t = 1; t <= nRounds; t++) {
+            let arm = 0;
+            let untried = -1;
+            for(let i=0; i<5; i++) { if(counts[i] === 0) { untried = i; break; } }
+
+            if (untried !== -1) {
+                arm = untried;
+            } else {
+                let maxUCB = -9999;
+                let candidates = [];
+                for(let i=0; i<5; i++) {
+                    let mean = rewardsSum[i] / counts[i];
+                    let bonus = Math.sqrt((2 * ucbVariance * Math.log(t)) / counts[i]);
+                    let ucb = mean + bonus;
+                    if(ucb > maxUCB) { maxUCB = ucb; candidates = [i]; }
+                    else if (ucb === maxUCB) { candidates.push(i); }
+                }
+                arm = candidates[Math.floor(Math.random()*candidates.length)];
+            }
+
+            let reward = getReward(arm);
+            counts[arm]++;
+            rewardsSum[arm] += reward;
+            currentRegret += (optimalMean - trueMeans[arm]);
+            regrets.push(currentRegret);
+        }
+        return regrets;
+    }
+
+    // Algorithm 3: Thompson Sampling
+    function runTSOnce() {
+        // Beta priors: alpha=1, beta=1
+        let alphas = [1,1,1,1,1];
+        let betas = [1,1,1,1,1];
+        let regrets = [];
+        let currentRegret = 0;
+
+        for (let t = 1; t <= nRounds; t++) {
+            let arm = 0;
+            let maxTheta = -1;
+            let candidates = [];
+
+            // Sampling Step
+            for (let i = 0; i < 5; i++) {
+                let theta = randomBeta(alphas[i], betas[i]);
+                if (theta > maxTheta) {
+                    maxTheta = theta;
+                    candidates = [i];
+                } else if (theta === maxTheta) {
+                    candidates.push(i);
+                }
+            }
+            arm = candidates[Math.floor(Math.random() * candidates.length)];
+
+            // Reward and Update
+            let reward = getReward(arm);
+            if (reward === 1) alphas[arm]++;
+            else betas[arm]++;
+
+            currentRegret += (optimalMean - trueMeans[arm]);
+            regrets.push(currentRegret);
+        }
+        return regrets;
+    }
+
+    function runSimulation() {
+        // Average Arrays
+        let avgRegretEps = new Array(nRounds).fill(0);
+        let avgRegretUCB = new Array(nRounds).fill(0);
+        let avgRegretTS = new Array(nRounds).fill(0);
+
+        // Monte Carlo
+        for(let sim=0; sim<nSimulations; sim++) {
+            let rEps = runEpsilonGreedyOnce(0.1);
+            let rUCB = runUCBOnce();
+            let rTS = runTSOnce();
+
+            for(let t=0; t<nRounds; t++) {
+                avgRegretEps[t] += rEps[t];
+                avgRegretUCB[t] += rUCB[t];
+                avgRegretTS[t] += rTS[t];
+            }
+        }
+
+        // Finalize averages
+        for(let t=0; t<nRounds; t++) {
+            avgRegretEps[t] /= nSimulations;
+            avgRegretUCB[t] /= nSimulations;
+            avgRegretTS[t] /= nSimulations;
+        }
+
+        // Render charts
+        drawChartUCB(avgRegretEps, avgRegretUCB);
+        drawChartTS(avgRegretEps, avgRegretTS);
+    }
+
+    function drawChartUCB(dataEps, dataUCB) {
+        const ctx = document.getElementById('regretChartUCB').getContext('2d');
+        if(chartRegretUCB) chartRegretUCB.destroy();
+
+        chartRegretUCB = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: nRounds}, (_, i) => i + 1).filter((_,i) => i%20===0),
+                datasets: [
+                    {
+                        label: 'Epsilon-Greedy (Naive)',
+                        data: dataEps.filter((_,i) => i%20===0),
+                        borderColor: '#d32f2f',
+                        backgroundColor: '#d32f2f',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'UCB (Optimistic)',
+                        data: dataUCB.filter((_,i) => i%20===0),
+                        borderColor: '#1976d2',
+                        backgroundColor: '#1976d2',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    title: { display: false },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Rounds (t)', font: {family: "Times New Roman"} } },
+                    y: { title: { display: true, text: 'Cumulative Regret', font: {family: "Times New Roman"} }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    function drawChartTS(dataEps, dataTS) {
+        const ctx = document.getElementById('regretChartTS').getContext('2d');
+        if(chartRegretTS) chartRegretTS.destroy();
+
+        chartRegretTS = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: nRounds}, (_, i) => i + 1).filter((_,i) => i%20===0),
+                datasets: [
+                    {
+                        label: 'Epsilon-Greedy (Naive)',
+                        data: dataEps.filter((_,i) => i%20===0),
+                        borderColor: '#d32f2f',
+                        backgroundColor: '#d32f2f',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Thompson Sampling (Bayesian)',
+                        data: dataTS.filter((_,i) => i%20===0),
+                        borderColor: '#2e7d32', /* Green for TS */
+                        backgroundColor: '#2e7d32',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    title: { display: false },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Rounds (t)', font: {family: "Times New Roman"} } },
+                    y: { title: { display: true, text: 'Cumulative Regret', font: {family: "Times New Roman"} }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // Run on load
+    window.onload = runSimulation;
+</script>
+
+</body>
+</html>
