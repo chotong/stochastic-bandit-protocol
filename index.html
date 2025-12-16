@@ -101,6 +101,14 @@
             margin-bottom: 0.8em;
             font-style: italic;
         }
+        
+        h4 {
+            font-family: var(--font-main);
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 1.2em;
+            margin-bottom: 0.5em;
+        }
 
         p {
             margin-bottom: 1.5em;
@@ -232,7 +240,7 @@
     <section>
         <h2>1. Abstract</h2>
         <p>
-            Reinforcement learning (RL) is the process by which organisms learn to predict and acquire rewards through trial and error. Within psychology and computational neuroscience, the Multi-Armed Bandit (MAB) problem serves as a quintessential experimental framework to isolate the specific computations underlying these decisions, specifically the trade-off between <strong>exploration</strong> (gathering new information) and <strong>exploitation</strong> (leveraging existing knowledge). While classical bandit tasks have successfully elucidated how dopaminergic systems track reward prediction errors, recent research suggests that standard algorithms may struggle in real-world scenarios characterized by sparse data and complex state spaces, necessitating the integration of episodic memory mechanisms [2]. This protocol outlines a rigorous methodology for simulating and evaluating two advanced algorithmic strategies: the Upper Confidence Bound (UCB) algorithm and Thompson Sampling. Unlike naive heuristic methods that rely on random exploration, these algorithms employ sophisticated mathematical principles to minimize the cost of learning. By following this protocol, researchers can replicate the standard experimental setup, implement these algorithms from scratch, and visually verify their logarithmic regret bounds, demonstrating their superior efficiency over traditional randomized baselines.
+            Reinforcement learning (RL) is the process by which organisms learn to predict and acquire rewards through trial and error. Within psychology and computational neuroscience, the Multi-Armed Bandit (MAB) problem serves as a quintessential experimental framework to isolate the specific computations underlying these decisions, specifically the trade-off between <strong>exploration</strong> (gathering new information) and <strong>exploitation</strong> (leveraging existing knowledge). While classical bandit tasks have successfully elucidated how dopaminergic systems track reward prediction errors, recent research suggests that standard algorithms may struggle in real-world scenarios characterized by sparse data and complex state spaces, necessitating the integration of episodic memory mechanisms [2]. This protocol outlines a rigorous methodology for simulating and evaluating two advanced algorithmic strategies: the Upper Confidence Bound (UCB) algorithm and Thompson Sampling [1]. Unlike naive heuristic methods that rely on random exploration, these algorithms employ sophisticated mathematical principles to minimize the cost of learning. By following this protocol, researchers can replicate the standard experimental setup, implement these algorithms from scratch, and visually verify their logarithmic regret bounds, demonstrating their superior efficiency over traditional randomized baselines.
         </p>
     </section>
 
@@ -244,10 +252,13 @@
         <p>
             Imagine a gambler standing before a row of slot machines, colloquially known as "one-armed bandits." Each machine is governed by a hidden probability distribution, offering a different, unknown rate of payout. The gambler’s objective is straightforward yet computationally complex: to maximize total winnings over a fixed series of pulls. This scenario creates an inherent conflict. Should the gambler continue to pull the machine that has yielded the highest rewards so far, thereby exploiting their current knowledge? Or should they risk pulling a machine they have tested only sparsely, driven by the possibility that it might be superior to the current favorite?
         </p>
+        <p>
+            <strong>A Concrete Example:</strong> Consider a simple scenario with two arms. Suppose Arm 1 gives a reward of 1 with probability 0.9, and Arm 2 gives a reward of 1 with probability 0.5. Both arms give a reward of 1 when they succeed. If we pull Arm 1 once and happen to receive 0 (bad luck), and pull Arm 2 once and receive 1 (good luck), we might incorrectly conclude that Arm 2 is better and continue pulling it. This leads to suboptimal decisions. According to the law of large numbers, pulling both arms many times will yield the true average, but while we are learning (exploring), we incur regret compared to always pulling the optimal arm (exploitation).
+        </p>
 
         <h3>2.2 Why This Matters</h3>
         <p>
-            While the gambling analogy provides an intuitive entry point, the implications of the Bandit Problem extend far beyond casinos. In computational neuroscience, these tasks are instrumental in mapping the brain's decision-making architecture. Research has demonstrated that the firing of dopamine neurons in the midbrain quantitatively mirrors the "reward prediction error" signals central to bandit algorithms [2]. Furthermore, these paradigms allow researchers to dissociate distinct learning systems, differentiating between incremental "model-free" systems (often associated with the striatum) and memory-dependent "episodic" mechanisms (associated with the hippocampus) that may guide choices when statistical data is sparse [2]. Practically, these algorithms are vital in <strong>Clinical Trials</strong>, where doctors must balance testing experimental drugs against administering the best known treatment to patients. Similarly, in <strong>Digital Optimization</strong>, tech companies use these algorithms for A/B testing to determine optimal user interfaces. This protocol provides the technical framework to simulate this environment and compare the efficacy of different decision-making philosophies.
+            While the gambling analogy provides an intuitive entry point, the implications of the Bandit Problem extend far beyond casinos. In computational neuroscience, these tasks are instrumental in mapping the brain's decision-making architecture. Research has demonstrated that the firing of dopamine neurons in the midbrain quantitatively mirrors the "reward prediction error" signals central to bandit algorithms [2]. Furthermore, these paradigms allow researchers to dissociate distinct learning systems, differentiating between incremental "model-free" systems (often associated with the striatum) and memory-dependent "episodic" mechanisms (associated with the hippocampus) that may guide choices when statistical data is sparse [2]. In the broader field of <strong>Cognitive Science</strong>, the bandit problem serves as a normative benchmark for evaluating human behavior. By comparing human performance against optimal algorithmic strategies, researchers can identify distinct cognitive biases—such as ambiguity aversion or random exploration—and model how the brain dynamically regulates the fundamental trade-off between curiosity-driven exploration and reward-maximizing exploitation.
         </p>
     </section>
 
@@ -274,7 +285,14 @@
             $$ \mathcal{R}_T = T\mu_* - \mathbb{E}\left[\sum_{t=1}^{T} R_t\right] $$
         </div>
         <p>
-            A "good" algorithm is one where the regret grows slowly (logarithmically) rather than quickly (linearly).
+            Cumulative regret can be understood as the difference between:
+        </p>
+        <ul>
+            <li>The expected reward obtained by executing our policy (algorithm or strategy), and</li>
+            <li>The expected reward we would have gained if we had known the optimal arm from the start and pulled it consistently.</li>
+        </ul>
+        <p>
+            Therefore, smaller cumulative regret is better. A good algorithm ensures that regret grows very slowly (logarithmically) rather than quickly (linearly) over time.
         </p>
     </section>
 
@@ -359,12 +377,20 @@ def ucb(env, T):
         </div>
         <div class="code-caption">Listing 3: Python implementation of the UCB algorithm</div>
 
-        <h3>Phase 4: Bayesian Learning (Thompson Sampling)</h3>
+        <h3>Phase 4: Thompson Sampling, a Bayesian perspective</h3>
         <p>
-            Adopting a Bayesian perspective, we implement Thompson Sampling. This models the agent's belief about each arm as a probability distribution, rather than a single number. We assign a Beta distribution, $Beta(\alpha, \beta)$, to each arm, initially setting $\alpha=1, \beta=1$ to represent a state of total ignorance (a uniform prior).
+            Machine learning problems generally fall into two schools of thought: <strong>Frequentist</strong> (e.g., UCB) and <strong>Bayesian</strong> (e.g., Thompson Sampling). While UCB constructs deterministic confidence bounds based on frequencies, Thompson Sampling assumes that the true reward probability of each arm follows a probability distribution. In each round, we sample from these distributions and choose the arm with the highest sampled value.
         </p>
         <p>
-            In every round, the algorithm draws a random sample from the distribution of each arm. This sample represents a "simulation" or "hallucination" of the arm's true power according to the agent's current belief. The algorithm then selects the arm that produced the highest sample. After observing the actual reward, the hyperparameters are updated using Bayes' rule: a success increments $\alpha$ (shifting the belief curve to the right), while a failure increments $\beta$. As data accumulates, the distributions become narrower and more peaked. This naturally guides the algorithm toward the optimal arm without explicit math for "bounds."
+            Adopting a Bayesian perspective, we implement Thompson Sampling. This models the agent's belief about each arm as a probability distribution, rather than a single number.
+        </p>
+        
+        <p>
+            We use the Beta distribution, $Beta(\alpha, \beta)$, to model the prior belief of each arm. This choice is primarily a mathematical convenience because the Beta distribution is <strong>conjugate</strong> to the Bernoulli likelihood (binary rewards). This means that a Beta prior combined with a Bernoulli likelihood yields a Beta posterior, making parameter updates computationally efficient ($ \alpha \leftarrow \alpha + 1 $ for success, $ \beta \leftarrow \beta + 1 $ for failure).
+        </p>
+
+        <p>
+            In every round, the algorithm draws a random sample from the distribution of each arm. This sample represents a "simulation" of the arm's true power according to the agent's current belief. The algorithm then selects the arm that produced the highest sample.
         </p>
         <div class="code-wrapper">
 def thompson_sampling(env, T):
@@ -458,7 +484,7 @@ def thompson_sampling(env, T):
     <section>
         <h2>8. References</h2>
         <ol class="references">
-            <li>Lattimore, T., & Szepesvári, C. (2019). <em>Bandit Algorithms</em>. Cambridge University Press.</li>
+            <li>Lattimore, T., & Szepesvári, C. (2019). <em>Bandit Algorithms</em> pp. 102-111, 460-475. Cambridge University Press.</li>
             <li>Gershman, S. J., & Daw, N. D. (2017). "Reinforcement learning and episodic memory in humans and animals: An integrative framework." <em>Annual Review of Psychology</em>, 68, 101-128.</li>
         </ol>
     </section>
